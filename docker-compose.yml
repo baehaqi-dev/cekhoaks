@@ -1,0 +1,42 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: cekhoaks-app
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    depends_on:
+      - postgres
+      - redis
+
+  nginx:
+    image: nginx:latest
+    container_name: cekhoaks-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+  postgres:
+    image: postgres:16
+    container_name: cekhoaks-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cekhoaks
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    container_name: cekhoaks-redis
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
